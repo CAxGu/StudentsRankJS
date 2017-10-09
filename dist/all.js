@@ -8,8 +8,6 @@ var _person2 = _interopRequireDefault(_person);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-//import Task from './newTask.js';
-
 var students = [new _person2.default("Paco", "Vañó", 5), new _person2.default("Lucia", "Botella", 10), new _person2.default("German", "Ojeda", 3), new _person2.default("Salva", "Peris", 1), new _person2.default("Oscar", "Carrion", 40)];
 
 function getRanking(students) {
@@ -38,9 +36,11 @@ function getRanking(students) {
 
   studentsEl.appendChild(cabecera);
 
-  /*while (studentsEl.firstChild) {
-     studentsEl.removeChild(studentsEl.firstChild);
-  }*/
+  var rows = studentsEl.getElementsByTagName("tr");
+  while (rows.length > 1) {
+    rows[1].parentNode.removeChild(rows[1]);
+  }
+
   students.forEach(function (studentItem, i) {
     var trEl = document.createElement("tr");
     trEl.setAttribute('id', 'tr' + i);
@@ -78,20 +78,18 @@ function getRanking(students) {
         getRanking(students);
       }, 1000);
     });
-
-    //console.log(studentItem.surname + ", "+studentItem.name+ ", "+studentItem.points ); 
   });
 
   var BotonTask = document.getElementById("new");
   BotonTask.addEventListener("click", function () {
 
-    //console.log("hola k ase");
     newTask(students);
   });
 }
 
-var action = 0;
+var action;
 function newTask(students) {
+  action = 0;
   action++;
 
   //creamos la cabecera con un input personalizado
@@ -115,8 +113,9 @@ function newTask(students) {
 
     var columnaNew = document.getElementById("tr" + i);
     var tdNota = document.createElement("td");
-    tdNota.setAttribute('id', studentItem.points);
+
     var value = document.createElement("input");
+    value.setAttribute('id', 'nota' + i + '&' + "task" + action);
     value.setAttribute('type', 'number');
     value.setAttribute('step', incremento);
     value.setAttribute('min', notamin);
@@ -125,6 +124,12 @@ function newTask(students) {
 
     tdNota.appendChild(value);
     columnaNew.appendChild(tdNota);
+
+    value.addEventListener("blur", function () {
+      var valor = parseFloat(value.value);
+      studentItem.addPoints(valor);
+      console.log(valor);
+    });
   });
 
   cabecera.appendChild(thTask);

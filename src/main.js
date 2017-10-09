@@ -1,7 +1,6 @@
 
 'use strict';
 import Person from './person.js';
-//import Task from './newTask.js';
 
 var students = [
   new Person("Paco", "Vañó", 5),
@@ -37,9 +36,11 @@ function getRanking(students) {
 
   studentsEl.appendChild(cabecera); 
 
- /*while (studentsEl.firstChild) {
-    studentsEl.removeChild(studentsEl.firstChild);
- }*/
+  var rows = studentsEl.getElementsByTagName("tr");
+  while (rows.length > 1) {
+      rows[1].parentNode.removeChild(rows[1]);
+  }
+
   students.forEach(function(studentItem,i) {
     var trEl = document.createElement("tr");
     trEl.setAttribute('id','tr'+i);
@@ -74,24 +75,27 @@ function getRanking(students) {
      
       studentItem.resPoints(puntos);
       setTimeout(function(){getRanking(students)},1000);
+     
     });
 
-    //console.log(studentItem.surname + ", "+studentItem.name+ ", "+studentItem.points ); 
   });
 
   var BotonTask = document.getElementById("new");
   BotonTask.addEventListener("click", function() {
-    
-    //console.log("hola k ase");
+  
     newTask(students);
+
    });
+
+   
 
 }
 
-var action=0;
+var action;
 function newTask(students) {
+  action=0;
   action++;
-
+  
   //creamos la cabecera con un input personalizado
   var trCabecera = document.getElementById("cabecera");
   var thTask = document.createElement("TH");
@@ -113,8 +117,9 @@ function newTask(students) {
 
     var columnaNew = document.getElementById("tr"+i);
     var tdNota= document.createElement("td");
-    tdNota.setAttribute('id',studentItem.points);
+    
     var value = document.createElement("input");
+    value.setAttribute('id','nota'+i+'&'+"task"+action);
     value.setAttribute('type','number');
     value.setAttribute('step',incremento);
     value.setAttribute('min',notamin);
@@ -123,12 +128,19 @@ function newTask(students) {
 
     tdNota.appendChild(value);
     columnaNew.appendChild(tdNota);
+
+    value.addEventListener("blur", function() {
+      var valor = parseFloat(value.value);
+      studentItem.addPoints(valor);
+      console.log(valor);
+      
+     });
+
   });
 
   cabecera.appendChild(thTask);
 
 }  
-
 
 window.onload = function() {
   getRanking(students);
