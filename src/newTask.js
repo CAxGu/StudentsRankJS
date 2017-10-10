@@ -1,7 +1,7 @@
 class Task {
     constructor(task,tasknota) {
             this.task = task; 
-            this.tasknota=tasknota; 
+            this.tasknota=0; 
     }    
   }
 

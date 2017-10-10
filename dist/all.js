@@ -1,5 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-
 'use strict';
 
 var _person = require('./person.js');
@@ -14,12 +13,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var students = [new _person2.default("Paco", "Vañó", 5), new _person2.default("Lucia", "Botella", 10), new _person2.default("German", "Ojeda", 3), new _person2.default("Salva", "Peris", 1), new _person2.default("Oscar", "Carrion", 40)];
 
+var ejercises = [];
+
 function getRanking(students) {
 
   students.sort(function (a, b) {
     return b.points - a.points;
   });
-
   var studentsEl = document.getElementById("ranking");
   var cabecera = document.createElement("tr");
   cabecera.setAttribute('id', "cabecera");
@@ -44,7 +44,6 @@ function getRanking(students) {
   while (rows.length > 1) {
     rows[1].parentNode.removeChild(rows[1]);
   }
-
   students.forEach(function (studentItem, i) {
     var trEl = document.createElement("tr");
     trEl.setAttribute('id', 'tr' + i);
@@ -85,27 +84,30 @@ function getRanking(students) {
   });
 
   var BotonTask = document.getElementById("new");
+  var titulo = document.getElementById("titulotask");
   BotonTask.onclick = function () {
-    getRanking(students), newTask(students);
+    getRanking(students), newTask(students, titulo.value);
   };
 }
 
 var action = 0;
-function newTask(students) {
+function newTask(students, titulo) {
+  console.log(titulo);
   console.log('action vale: ' + action);
   action++;
 
   //creamos la cabecera con un input personalizado
+
   var trCabecera = document.getElementById("cabecera");
   var thTask = document.createElement("TH");
   thTask.setAttribute('id', "task" + action);
   var value = document.createElement("input");
   value.setAttribute('type', 'text');
   value.setAttribute('size', '10');
-  var textTask = document.createTextNode(value.value);
+
+  value.value = titulo;
 
   thTask.appendChild(value);
-  thTask.appendChild(textTask);
   trCabecera.appendChild(thTask);
 
   //añadimos un casillero para la nota de cada alumno
@@ -137,6 +139,9 @@ function newTask(students) {
       }*/
       console.log(valor);
     });
+    /*  var titulo = document.getElementById("task"+i).value;
+     ejercises.push(new Task(titulo,value.value));
+     console.log(ejercises); */
   });
 
   cabecera.appendChild(thTask);
@@ -159,7 +164,7 @@ var Task = function Task(task, tasknota) {
         _classCallCheck(this, Task);
 
         this.task = task;
-        this.tasknota = tasknota;
+        this.tasknota = 0;
 };
 
 exports.default = Task;
