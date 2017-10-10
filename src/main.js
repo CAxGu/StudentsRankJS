@@ -1,6 +1,7 @@
 
 'use strict';
 import Person from './person.js';
+import Task from './newTask.js';
 
 var students = [
   new Person("Paco", "Vañó", 5),
@@ -63,7 +64,7 @@ function getRanking(students) {
 
     //Boton +x puntos
     var addPointsEl = document.createElement("button");
-    var puntos="5";
+    var puntos="0.25";
     var tb = document.createTextNode("-"+puntos);
 
     addPointsEl.appendChild(tb);
@@ -81,21 +82,15 @@ function getRanking(students) {
   });
 
   var BotonTask = document.getElementById("new");
-  BotonTask.addEventListener("click", function() {
-  
-    newTask(students);
-
-   });
-
-   
-
+  BotonTask.onclick = function(){getRanking(students),newTask(students)};
+ 
 }
 
-var action;
+var action=0;
 function newTask(students) {
-  action=0;
+  console.log('action vale: '+action);
   action++;
-  
+
   //creamos la cabecera con un input personalizado
   var trCabecera = document.getElementById("cabecera");
   var thTask = document.createElement("TH");
@@ -111,6 +106,7 @@ function newTask(students) {
 
   //añadimos un casillero para la nota de cada alumno
   students.forEach(function(studentItem,i) {
+
     var notamin=0;
     var notamax=10;
     var incremento=0.25;
@@ -132,6 +128,9 @@ function newTask(students) {
     value.addEventListener("blur", function() {
       var valor = parseFloat(value.value);
       studentItem.addPoints(valor);
+      /*if(studentItem.position == i){
+      getRanking(students);
+      }*/
       console.log(valor);
       
      });
