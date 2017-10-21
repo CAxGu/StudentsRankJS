@@ -12,7 +12,7 @@ gulp.task('browserify', function() {
 browserify("./src/main.js")
   .transform("babelify", {presets: ["es2015"]})
   .bundle()
-  .pipe(fs.createWriteStream("dist/all.js"));
+  .pipe(fs.createWriteStream("dist/main.js"));
 });
 
 ///http server live reload (html changes)
