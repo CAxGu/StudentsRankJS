@@ -30,7 +30,7 @@ function loadTemplate(template,callback){
   xhr.onreadystatechange = function (e) {
     if (xhr.readyState === 4 && xhr.status === 200) {
       let content =document.getElementById('content');
-      content.innerHTML="";
+      content.removeChild;
       content.innerHTML=xhr.responseText;
       callback(xhr.responseText);
     }
@@ -42,5 +42,22 @@ function loadTemplate(template,callback){
 }
 
 
-export {hashcode,getElementTd,loadTemplate};
+function loadContent(template,callback){
+  
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", template, true);
+    xhr.onreadystatechange = function (e) {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        let content =document.getElementById('llistat');
+        content.innerHTML=xhr.responseText;
+        callback(xhr.responseText);
+      }
+    };
+    xhr.onerror = function (e) {
+      console.error(xhr.statusText);
+    };
+    xhr.send();
+  }
+
+export {hashcode,getElementTd,loadTemplate,loadContent};
 

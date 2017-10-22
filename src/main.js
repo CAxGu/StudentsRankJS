@@ -5,13 +5,14 @@ import {context} from './context.js';
 
 /** Once the page is loaded we get a context app object an generate students rank view. */
 function init(){
-  context.inicontext();
- //  context.getRanking();
+   context.clickTitle();
+   context.inicontext();
+   context.getRanking();
+   context.addStudent();
 }
 
 
 window.onload = function() {
-  context.addStudent();
   init();
   /* let context = new Context();
   context.getRanking();*/
