@@ -108,7 +108,7 @@ class Person {
 
         let inputEl = document.createElement("input");    
         inputEl.type = "number";inputEl.min=0;inputEl.max = 100;  
-        inputEl.value = gTaskItem["points"]
+        inputEl.value = gTaskItem["points"];
         inputEl.addEventListener("change", function(event) {
         that.addPoints(parseInt(gTaskItem["points"])*(-1));
         gTaskItem["points"] = inputEl.value;

@@ -8,7 +8,7 @@ function hashcode(str) {
     hash |= 0; // Convert to 32bit integer
   }
   return hash;
-};
+}
 
 
 /** Pass a text or an element ang get a td table element wrapping it. */ 

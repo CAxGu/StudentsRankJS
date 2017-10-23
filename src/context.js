@@ -128,7 +128,7 @@ class Context {
                 stud.forEach(function(studentItem) {            
                     studentItem.addGradedTask(gtask);
                 });
-                
+
                 localStorage.setItem("students",JSON.stringify(stud));
                 localStorage.setItem("tasks",JSON.stringify(grade));
 
@@ -158,7 +158,7 @@ class Context {
                 if(context.gradedTasks.length>0){
                     context.gradedTasks.forEach(function(taskItem){ 
                         newStudent.addGradedTask(taskItem);
-                    })
+                    });
                 }
                 stud.push(newStudent);
 
@@ -166,21 +166,13 @@ class Context {
 
                 context.getNewStudent();
             }else{
-                alert("You must fill the names and surnames field first!")
+                alert("You must fill the names and surnames field first!");
             }
            console.log(stud); 
         });
         
         });
       }
-
-      /** Load the main view where will be show the students what  are contain in our array */
-      loadRanking(){
-
-     
-      }
-
-
 
 }
 

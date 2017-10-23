@@ -14,13 +14,4 @@ class GradedTask {
   }    
 }
 
-class PositiveTask extends GradedTask {  
-  constructor(points,reason) {  	
-    super();
-    
-    this.points=points;
-    this.reason=reason;
-  }    
-}
-
 export default GradedTask;

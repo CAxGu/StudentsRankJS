@@ -11,9 +11,6 @@ function init(){
    context.addStudent();
 }
 
-
 window.onload = function() {
   init();
-  /* let context = new Context();
-  context.getRanking();*/
 }
