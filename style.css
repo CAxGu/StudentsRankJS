@@ -1,2 +1,24 @@
 /* Styles go here */
 
+button {
+    background-color: #6f9ceb;
+    border-radius: 8px;
+    font-family: Arial;
+    font-weight: bold;
+    color: #ffffff;
+    padding-left: .5em;
+    padding-right: .5em;
+}
+
+input {
+    border-radius: 4px;
+}
+
+td{
+    font-family: sans-serif;
+    color: #000000;
+}
+
+a:hover {
+    color: #d4a348    
+}
