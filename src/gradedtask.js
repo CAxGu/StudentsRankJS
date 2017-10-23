@@ -6,9 +6,20 @@
  */ 
 
 class GradedTask {  
-  constructor(name) {  	
-    this.name = name;     
+  constructor(name,percent,subject) {  	
+    this.name = name;
+    this.percent=percent;
+    this.subject=subject;     
 
+  }    
+}
+
+class PositiveTask extends GradedTask {  
+  constructor(points,reason) {  	
+    super();
+    
+    this.points=points;
+    this.reason=reason;
   }    
 }
 

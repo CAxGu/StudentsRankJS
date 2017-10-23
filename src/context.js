@@ -42,15 +42,6 @@ class Context {
     clickTitle(){
         let title = document.getElementById("title");
         title.addEventListener("click", () => {
-            /* let size=(this.gradedTasks).length;
-            if(size>=1){
-                this.students.forEach(function(studentItem) {  
-                    //console.log(studentItem.gradedTasks);
-                    if(studentItem.gradedTasks.length==0){       
-                        studentItem.addGradedTask(context.gradedTasks);
-                    }
-                });
-            } */
           this.getRanking();
         });
     };
@@ -61,7 +52,31 @@ class Context {
 
         let stud=this.students;
         let gtask=this.gradedTasks;
-        
+
+        /** Condition that enables load data from localstorage (if data already exist) into our app */
+        if(stud.length ==0){
+            if(localStorage.getItem("students") !== null){
+                let localstudents=JSON.parse(localStorage.getItem("students"));
+                localstudents.forEach(function(localElement){
+
+                    let student=Object.assign(new Person(),localElement);
+                    context.students.push(student);
+                })
+                console.log(context.students);
+            }
+        }
+        if(gtask.length == 0){
+            if(localStorage.getItem("tasks") !== null){
+                let localtasks=JSON.parse(localStorage.getItem("tasks"));
+                localtasks.forEach(function(localElement){
+
+                    let task=Object.assign(new GradedTask(),localElement);
+                    context.gradedTasks.push(task);
+                })
+                console.log(context.gradedTasks);
+            }
+        }
+
         let loadtemplate = new loadTemplate('./templates/createList.html',function(responseText){
 
         stud.sort(function(a, b) {
@@ -103,13 +118,22 @@ class Context {
             let send=document.getElementById("sendTask");
 
             send.addEventListener('click', ()=> {
-                let gtask = new GradedTask(taskName);
-
+                if(taskName.value=="" & percent.value=="" || subject.value==""){
+                    alert('Fill the fields first!');
+                    context.addGradedTask();
+                }else{
+                let gtask = new GradedTask(taskName,percent.value,subject.value);
+                
                 grade.push(gtask);
                 stud.forEach(function(studentItem) {            
                     studentItem.addGradedTask(gtask);
                 });
+                
+                localStorage.setItem("students",JSON.stringify(stud));
+                localStorage.setItem("tasks",JSON.stringify(grade));
+
                 context.getRanking();
+                }
             });
 
         });
@@ -137,6 +161,9 @@ class Context {
                     })
                 }
                 stud.push(newStudent);
+
+                localStorage.setItem("students",JSON.stringify(stud));
+
                 context.getNewStudent();
             }else{
                 alert("You must fill the names and surnames field first!")

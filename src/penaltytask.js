@@ -1,14 +1,14 @@
 /**
- * PositiveTask class. Create a positive task in order to reward a student
+ * PenaltyTask class. Create a penalty task in order to penalise a student
  * @constructor
- * @param {int} points - amount of points added in the positive
+ * @param {int} points - amount of points rested in the penalty
  * @param {string} reason - reason of the positive mark
  * @tutorial pointing-criteria
  */ 
 
 import GradedTask from './gradedtask.js';
 
-class PositiveTask extends GradedTask {  
+class PenaltyTask extends GradedTask {  
   constructor(points,reason,date) {  	
     super();
 
@@ -18,4 +18,4 @@ class PositiveTask extends GradedTask {
   }    
 }
 
-export default PositiveTask;
+export default PenaltyTask;

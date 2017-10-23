@@ -8,7 +8,9 @@
  * @tutorial pointing-criteria
  */ 
  
- import {hashcode,getElementTd,loadTemplate,loadContent} from './utils.js';
+ import {hashcode,getElementTd,loadTemplate} from './utils.js';
+ import {PositiveTask} from './positivetask.js';
+ import {PenaltyTask} from './penaltytask.js';
  import {context} from './context.js';
 
 class Person {
@@ -16,7 +18,9 @@ class Person {
     this.name = name;
     this.surname = surname;
     this.points = points;
-    this.gradedTasks = [];    
+    this.gradedTasks = [];
+    this.positiveTasks=[];
+    this.penaltyTask=[];
   }    
   
   /** Add points to persons we should carefully use it. */
@@ -58,12 +62,15 @@ class Person {
       loadTemplate('./templates/createPositive.html',function(responseText){
 
           let amount =document.getElementById("points");
+          let reason = document.getElementById("reason");
           let send=document.getElementById("sendPositive");
 
             send.addEventListener('click', () => {
               
-                if(amount!==""){
+                if(amount!=="" & reason!==""){
+                  that.positiveTasks.push({"points":points.value,"reason":reason.value,"date":Date()});
                   that.addPoints(eval(amount.value));
+                  localStorage.setItem("students",JSON.stringify(context.students));
                   context.getRanking();
                 }else{
                   alert("You must fill the fields first!");
@@ -81,8 +88,10 @@ class Person {
             
             send.addEventListener('click', () => {
                         
-                if(amount!==""){
+                if(amount!=="" & reason!==""){
+                  that.penaltyTask.push({"points":points.value,"reason":reason.value,"date":Date()});
                   that.resPoints(eval(amount.value));
+                  localStorage.setItem("students",JSON.stringify(context.students));
                   context.getRanking();
                 }else{
                     alert("You must fill the fields first!");
@@ -104,6 +113,7 @@ class Person {
         that.addPoints(parseInt(gTaskItem["points"])*(-1));
         gTaskItem["points"] = inputEl.value;
         that.addPoints(parseInt(gTaskItem["points"]));
+        localStorage.setItem("students",JSON.stringify(context.students));
         context.getRanking();        
       });
       liEl.appendChild(getElementTd(inputEl));

@@ -23,6 +23,7 @@ function getElementTd(text) {
 }
 
 
+/** Function that loads a template html into the DOM */
 function loadTemplate(template,callback){
 
   let xhr = new XMLHttpRequest();
@@ -42,22 +43,5 @@ function loadTemplate(template,callback){
 }
 
 
-function loadContent(template,callback){
-  
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", template, true);
-    xhr.onreadystatechange = function (e) {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        let content =document.getElementById('llistat');
-        content.innerHTML=xhr.responseText;
-        callback(xhr.responseText);
-      }
-    };
-    xhr.onerror = function (e) {
-      console.error(xhr.statusText);
-    };
-    xhr.send();
-  }
-
-export {hashcode,getElementTd,loadTemplate,loadContent};
+export {hashcode,getElementTd,loadTemplate};
 
