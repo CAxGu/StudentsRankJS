@@ -1,128 +1,157 @@
 /**
- * Person class. We store personal information and points that reflect daily classroom job
+ * Person class. We store personal information and attitudePoints that reflect daily classroom job
  *
  * @constructor
  * @param {string} name - Person name
  * @param {string} surname - Person surname
- * @param {number} points - Person total points 
+ * @param {array} attitudeTasks - Person awarded AttitudeTasks array   
+ * @param {array} gradedTasks - Person gradedTasks array
  * @tutorial pointing-criteria
- */ 
- 
- import {hashcode,getElementTd,loadTemplate} from './utils.js';
- import {PositiveTask} from './positivetask.js';
- import {PenaltyTask} from './penaltytask.js';
- import {context} from './context.js';
+ */
+
+import {formatDate,popupwindow,hashcode,getElementTd,loadTemplate} from './utils.js';
+import {context} from './context.js';
+import AttitudeTask from './attitudetask.js';
+
+const privateAddTotalPoints = Symbol('privateAddTotalPoints'); /** To accomplish private method */
+const _totalPoints = Symbol('TOTAL_POINTS'); /** To acomplish private property */
 
 class Person {
-  constructor(name,surname,points) {
+  constructor(name,surname,attitudeTasks,gradedTasks) {
+    this[_totalPoints] = 0;
     this.name = name;
     this.surname = surname;
-    this.points = points;
-    this.gradedTasks = [];
-    this.positiveTasks=[];
-    this.penaltyTask=[];
-  }    
-  
-  /** Add points to persons we should carefully use it. */
-  addPoints(points) {
-        this.points += points;
+
+    this.attitudeTasks = attitudeTasks;
+    this.gradedTasks = gradedTasks;
+
+    this.attitudeTasks.forEach(function (itemAT) {
+      this[_totalPoints] += parseInt(itemAT['task'].points);
+    }.bind(this));
+    this.gradedTasks.forEach(function (itemGT) {
+      this[_totalPoints] += parseInt(itemGT.points);
+    }.bind(this));
   }
 
-  /** Rest points to persons we should carefully use it. */
-   resPoints(points) {
-    this.points -= points;
+  /** Add points to persons we should carefully use it. */
+  [privateAddTotalPoints] (points) {
+    if (!isNaN(points)) {
+      this[_totalPoints] += points;
+      context.getTemplateRanking();
+    }
+  }
+
+  /** Read person _totalPoints. A private property only modicable inside person instance */
+  getTotalPoints() {
+    return this[_totalPoints];
   }
 
   /** Add a gradded task linked to person with its own mark. */
   addGradedTask(taskInstance) {
-        this.gradedTasks.push({"task":taskInstance,"points":0});
-       context.getRanking();
+    this.gradedTasks.push({'task':taskInstance,'points':0});
+    /* let task_= new Map();
+    task_.set(hashcode(taskInstance.name + taskInstance.description + taskInstance.weight),{'task':taskInstance,'points':0})
+    this.gradedTasks.push(Array.from(task_)) */
   }
-  /** Renders HTML person view Create a table row (tr) with all name, points , add button and one input for every gradded task binded for that person. */
+
+  /** Add a Attitude task linked to person with its own mark. */
+  addAttitudeTask(taskInstance) {
+    this.attitudeTasks.push({'task':taskInstance});
+    this[privateAddTotalPoints](parseInt(taskInstance.points));
+    context.notify('Added ' + taskInstance.description + ' to ' + this.name + ',' + this.surname);
+  }
+
+  /** Renders HTML person view Create a table row (tr) with
+   *  all name, attitudePoints , add button and one input for 
+   * every gradded task binded for that person. */
   getHTMLView() {
+    let liEl = document.createElement('tr');
+    let a =document.createElement('a');
+    let hashid=hashcode(this.surname + this.name);
+    a.setAttribute('href',"#details/"+ hashid );
+    a.setAttribute('id',hashid);
 
-    var liEl = document.createElement("tr");
+    let esEL = getElementTd(this.surname + ', ' + this.name);
 
-    liEl.appendChild(getElementTd(this.surname + ", " + this.name));
+    a.appendChild(esEL);
+    liEl.appendChild(a);
 
-    liEl.appendChild(getElementTd(this.points));    
-    
-    var addPointsEl = document.createElement("button");
-    var tb = document.createTextNode("+");
-    addPointsEl.appendChild(tb);
-    var resPointsEL = document.createElement("button");
-    var tb1 = document.createTextNode("-");
-    resPointsEL.appendChild(tb1);
+    liEl.appendChild(getElementTd(this[_totalPoints]));
 
-    liEl.appendChild(getElementTd(addPointsEl));
-    liEl.appendChild(getElementTd(resPointsEL));
-
-    addPointsEl.addEventListener("click", () => {
-
-      loadTemplate('./templates/createPositive.html',function(responseText){
-
-          let amount =document.getElementById("points");
-          let reason = document.getElementById("reason");
-          let send=document.getElementById("sendPositive");
-
-            send.addEventListener('click', () => {
-              
-                if(amount!=="" & reason!==""){
-                  that.positiveTasks.push({"points":points.value,"reason":reason.value,"date":Date()});
-                  that.addPoints(eval(amount.value));
-                  localStorage.setItem("students",JSON.stringify(context.students));
-                  context.getRanking();
-                }else{
-                  alert("You must fill the fields first!");
-                }
-            });
-      });
-    });
+    let addAttitudeTaskEl = document.createElement('button');
+    let tb = document.createTextNode('+XP');
+    addAttitudeTaskEl.appendChild(tb);
 
 
-    resPointsEL.addEventListener("click", () => {
+    let editStudent = document.createElement('button');
+    let tbe = document.createTextNode('EDIT');
+    editStudent.appendChild(tbe);
+    let a3 =document.createElement('a');
+    a3.setAttribute('href',"#editStudent/"+ hashid);
+    a3.setAttribute('id',hashid);
 
-        loadTemplate('./templates/createPenalty.html',function(responseText){
-            let amount =document.getElementById("points");
-            let send=document.getElementById("sendPenalty");
-            
-            send.addEventListener('click', () => {
-                        
-                if(amount!=="" & reason!==""){
-                  that.penaltyTask.push({"points":points.value,"reason":reason.value,"date":Date()});
-                  that.resPoints(eval(amount.value));
-                  localStorage.setItem("students",JSON.stringify(context.students));
-                  context.getRanking();
-                }else{
-                    alert("You must fill the fields first!");
-                }
-            });
-        });
-    });
-    
+    a3.appendChild(editStudent);
+    liEl.appendChild(getElementTd(a3));
 
+
+    let deleteStudent = document.createElement('button');
+    let tbd = document.createTextNode('DEL');
+    deleteStudent.appendChild(tbd);
+    let a2 =document.createElement('a');
+    a2.setAttribute('href',"#deleteStudent/"+ hashid);
+    a2.setAttribute('id',hashid);
+
+    a2.appendChild(deleteStudent);
+    liEl.appendChild(getElementTd(a2));
+
+
+    let a1 =document.createElement('a');
+    a1.setAttribute('href',"#XP/"+ hashid);
+    a1.setAttribute('id',hashid);
+
+    a1.appendChild(addAttitudeTaskEl);
+    liEl.appendChild(getElementTd(a1));
+
+ 
     let that = this;
-    this.calculatedPoints = 0;
-    this.gradedTasks.forEach(function(gTaskItem) { 
-
-
-        let inputEl = document.createElement("input");    
-        inputEl.type = "number";inputEl.min=0;inputEl.max = 100;  
-        inputEl.value = gTaskItem["points"];
-        inputEl.addEventListener("change", function(event) {
-        that.addPoints(parseInt(gTaskItem["points"])*(-1));
-        gTaskItem["points"] = inputEl.value;
-        that.addPoints(parseInt(gTaskItem["points"]));
-        localStorage.setItem("students",JSON.stringify(context.students));
-        context.getRanking();        
+    
+    this.gradedTasks.reverse().forEach(function(gTaskItem) {
+        let inputEl = document.createElement('input');
+        inputEl.type = 'number';
+        inputEl.min = 0;
+        inputEl.max = 100;
+        inputEl.value = gTaskItem['points'];
+        inputEl.addEventListener('change', function(event) {
+            that[privateAddTotalPoints](parseInt(gTaskItem['points'] * (-1)));
+            gTaskItem['points'] = inputEl.value;
+            that[privateAddTotalPoints](parseInt(gTaskItem['points']));
+          });
+        liEl.appendChild(getElementTd(inputEl));
       });
-      liEl.appendChild(getElementTd(inputEl));
 
 
-    });
+      // let that = this;
+      // let arrayTasks = [...this.gradedTasks];
+      // arrayTasks.reverse().forEach(function(gTask) {
+      //   gTask.forEach(function(gTaskItem) {
+      //    // debugger;
+      //     console.log(gTaskItem[1].points);
+      //       let inputEl = document.createElement('input');
+      //       inputEl.type = 'number';
+      //       inputEl.min = 0;
+      //       inputEl.max = 100;
+      //       inputEl.value = parseInt(gTaskItem[1].points);
+      //       inputEl.addEventListener('change', function(event) {
+      //           that[privateAddTotalPoints](parseInt(gTaskItem[1].points* (-1)));
+      //           gTaskItem[1].points = inputEl.value;
+      //           that[privateAddTotalPoints](parseInt(gTaskItem[1].points));
+      //         });
+      //       liEl.appendChild(getElementTd(inputEl));
+      //     });
+      // });
+
     return liEl;
   }
-
 }
 
 export default Person;

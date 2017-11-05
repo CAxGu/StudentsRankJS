@@ -1,7 +1,9 @@
 /** Hash code funtion usefull for getting an unique id based on a large text */
 function hashcode(str) {
-  var hash = 0, i, chr;
-  if (str.length === 0) return hash;
+  let hash = 0, i, chr;
+  if (str.length === 0) {
+    return hash;
+  }
   for (i = 0; i < str.length; i++) {
     chr   = str.charCodeAt(i);
     hash  = ((hash << 5) - hash) + chr;
@@ -9,39 +11,76 @@ function hashcode(str) {
   }
   return hash;
 }
+/* 
+function check(){
+
+  if(document.getElementTa("weekly").style.display == "none"){
+   document.getElementById("weekly").style.display = "block";
+   } else{
+    document.getElementById("weekly").style.display = "none";
+  }
+} */
+
+
+
 
 
 /** Pass a text or an element ang get a td table element wrapping it. */ 
 function getElementTd(text) {
-  let tdEl = document.createElement("td");
+  let tdEl = document.createElement('td');
   let t = text;
-  if (typeof text === "string" || typeof text === "number"){ 
-     t = document.createTextNode(text); // Create a text node
-  }    
+  if (typeof text === 'string' || typeof text === 'number') {
+    t = document.createTextNode(text); // Create a text node
+  }
   tdEl.appendChild(t);
-   return tdEl;
+  return tdEl;
 }
 
+function deleteContent() {
+  let contentEl = document.getElementById('content');
 
-/** Function that loads a template html into the DOM */
-function loadTemplate(template,callback){
+  while (contentEl.firstChild) {
+    contentEl.removeChild(contentEl.firstChild);
+  }
+}
 
-  let xhr = new XMLHttpRequest();
-  xhr.open("GET", template, true);
-  xhr.onreadystatechange = function (e) {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      let content =document.getElementById('content');
-      content.removeChild;
-      content.innerHTML=xhr.responseText;
-      callback(xhr.responseText);
+function loadTemplate(urlTemplate,callback) {
+  let xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState === 4 && this.status === 200) {
+      document.getElementById('content').innerHTML =
+      this.responseText;
+      callback(this.responseText);
     }
   };
-  xhr.onerror = function (e) {
-    console.error(xhr.statusText);
-  };
-  xhr.send();
+  xhttp.open('GET', urlTemplate, true);
+  xhttp.send();
+}
+
+function popupwindow(url, title, w, h) {
+  let left = (screen.width / 2) - (w / 2);
+  let top = (screen.height / 2) - (h / 2);
+  return window.open(url, title, 'toolbar=no, location=no, directories=no,' +
+                    'status=no, menubar=no,scrollbars=no, resizable=no, copyhistory=no,' +
+                    ' width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
 }
 
 
-export {hashcode,getElementTd,loadTemplate};
+function formatDate(date) {
+  var monthNames = [
+    'January', 'February', 'March',
+    'April', 'May', 'June', 'July',
+    'August', 'September', 'October',
+    'November', 'December'
+  ];
 
+  var day = date.getDate();
+  var monthIndex = date.getMonth();
+  var year = date.getFullYear();
+  var minute = date.getMinutes();
+  var hour = date.getHours();
+
+  return day + ' ' + monthNames[monthIndex] + ' ' + year + ' ' + hour + ':' + minute;
+}
+
+export {formatDate,popupwindow,hashcode,getElementTd,deleteContent,loadTemplate};
