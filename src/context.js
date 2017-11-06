@@ -89,6 +89,7 @@ class Context {
           }.bind(this));
          
     }
+    window.location.replace("/#");
   }
 
   /** Create a form to create a GradedTask that will be added to every student */

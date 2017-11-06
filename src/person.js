@@ -82,16 +82,17 @@ class Person {
 
     liEl.appendChild(getElementTd(this[_totalPoints]));
 
-   // let addAttitudeTaskEl = document.createElement('img');
-   // addAttitudeTaskEl.src="./img/extra.png"
-   let addAttitudeTaskEl = document.createElement('button');
-    let tb = document.createTextNode('+XP');
-    addAttitudeTaskEl.appendChild(tb); 
+   let addAttitudeTaskEl = document.createElement('img');
+   addAttitudeTaskEl.src="./img/extra.png"
+   addAttitudeTaskEl.height="30";
+   addAttitudeTaskEl.width="30";
+  
+   let editStudent = document.createElement('img');
+   editStudent.src="./img/edit.png"
+   editStudent.height="30";
+   editStudent.width="30";
 
 
-    let editStudent = document.createElement('button');
-    let tbe = document.createTextNode('EDIT');
-    editStudent.appendChild(tbe);
     let a3 =document.createElement('a');
     a3.setAttribute('href',"#editStudent/"+ hashid);
     a3.setAttribute('id',hashid);
@@ -100,9 +101,10 @@ class Person {
     liEl.appendChild(getElementTd(a3));
 
 
-    let deleteStudent = document.createElement('button');
-    let tbd = document.createTextNode('DEL');
-    deleteStudent.appendChild(tbd);
+    let deleteStudent = document.createElement('img');
+    deleteStudent.height="30";
+    deleteStudent.width="30";
+    deleteStudent.src="./img/delete.png"
     let a2 =document.createElement('a');
     a2.setAttribute('href',"#deleteStudent/"+ hashid);
     a2.setAttribute('id',hashid);

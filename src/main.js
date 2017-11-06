@@ -41,6 +41,9 @@ window.onhashchange = function(){
                 popUp.onload = function() {
                   popUp.document.title = STUDENT.name + ' ' +
                   STUDENT.surname + ' XP points';
+                  let popuphead = popUp.document.head;
+                
+                  popuphead.innerHTML+='<link rel="stylesheet" href="/css/style.css">';
                   let xpButtons = popUp.document.getElementsByClassName('xp');
                   Array.prototype.forEach.call(xpButtons,function(xpBItem) {
                     xpBItem.addEventListener('click', () => {
