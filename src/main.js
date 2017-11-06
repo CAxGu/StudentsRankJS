@@ -16,6 +16,8 @@ window.onhashchange = function(){
     let result = regUrl.exec(url);
     let regUrlID = /([0-9,-]*)$/g; //Regex to get the /id refered
     let resultID = regUrlID.exec(url);
+    let regUrltask = /([a-z0-9\s,-]*)$/gi; //Regex to get the /task refered
+    let resulttask = regUrltask.exec(url);
 
     /** Routing to load every single section of our aplication using the url */
     if(result){
@@ -53,7 +55,6 @@ window.onhashchange = function(){
             case '#details':
                 loadTemplate('templates/detailStudent.html',function(responseText) {
                   let STUDENT = context.getStudentbyID(resultID[1]);
-
                   let ATTITUDE_TASKS = '';
                   STUDENT.attitudeTasks.reverse().forEach(function(atItem) {
                     ATTITUDE_TASKS += '<li>' + atItem.task.points + '->' +
@@ -78,7 +79,7 @@ window.onhashchange = function(){
             break;
             case '#deleteStudent':
                 let stud = context.getStudentbyID(resultID[1]);
-                let conf =confirm("Estas seguro de borrar a : "+ stud.name+', '+stud.surname);
+                let conf =confirm("Are you sure?, Delete Student: "+ stud.name+', '+stud.surname+' ?');
                 if (conf){
                   context.students.delete(eval(resultID[1]));
                   context.getTemplateRanking();
@@ -87,13 +88,28 @@ window.onhashchange = function(){
                 }
                 
             break;
-            default:
-              window.location.href="";
+            case '#listTask':
+                loadTemplate('templates/listTask.html',function(responseText) {
+                  let GTASK =  context.getGtaskbyID(resulttask[1]);
+                  document.getElementById('content').innerHTML = eval('`' + responseText + '`');
+                }.bind(this));
+            break;
+            case '#editTask':
+                loadTemplate('templates/editTask.html',function(responseText) {
+                  let GTASK =  context.getGtaskbyID(resulttask[1]);
+                  document.getElementById('content').innerHTML = eval('`' + responseText + '`');
+                  context.editTask(resulttask[1]);
+                }.bind(this));
+            break;
+            case '#deleteTask':
+                let conf1 =confirm("Are you sure?, Delete Task: "+ resulttask[1] +' ?');
+                let index;
+                if (conf1){
+                  context.deleteTask(resulttask[1]);
+                }
             break;
           }
     
-      }else{
-        context.getTemplateRanking();
       }
     
 };

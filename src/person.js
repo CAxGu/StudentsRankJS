@@ -46,12 +46,15 @@ class Person {
     return this[_totalPoints];
   }
 
+/** Reset the total points amount when a task is deleted */
+  resetTotalPoints(points) {
+    this[_totalPoints]-= eval(points);
+    return this[_totalPoints];
+  }
+
   /** Add a gradded task linked to person with its own mark. */
   addGradedTask(taskInstance) {
     this.gradedTasks.push({'task':taskInstance,'points':0});
-    /* let task_= new Map();
-    task_.set(hashcode(taskInstance.name + taskInstance.description + taskInstance.weight),{'task':taskInstance,'points':0})
-    this.gradedTasks.push(Array.from(task_)) */
   }
 
   /** Add a Attitude task linked to person with its own mark. */
@@ -71,6 +74,7 @@ class Person {
     a.setAttribute('href',"#details/"+ hashid );
     a.setAttribute('id',hashid);
 
+     
     let esEL = getElementTd(this.surname + ', ' + this.name);
 
     a.appendChild(esEL);
@@ -78,9 +82,11 @@ class Person {
 
     liEl.appendChild(getElementTd(this[_totalPoints]));
 
-    let addAttitudeTaskEl = document.createElement('button');
+   // let addAttitudeTaskEl = document.createElement('img');
+   // addAttitudeTaskEl.src="./img/extra.png"
+   let addAttitudeTaskEl = document.createElement('button');
     let tb = document.createTextNode('+XP');
-    addAttitudeTaskEl.appendChild(tb);
+    addAttitudeTaskEl.appendChild(tb); 
 
 
     let editStudent = document.createElement('button');
@@ -128,28 +134,6 @@ class Person {
           });
         liEl.appendChild(getElementTd(inputEl));
       });
-
-
-      // let that = this;
-      // let arrayTasks = [...this.gradedTasks];
-      // arrayTasks.reverse().forEach(function(gTask) {
-      //   gTask.forEach(function(gTaskItem) {
-      //    // debugger;
-      //     console.log(gTaskItem[1].points);
-      //       let inputEl = document.createElement('input');
-      //       inputEl.type = 'number';
-      //       inputEl.min = 0;
-      //       inputEl.max = 100;
-      //       inputEl.value = parseInt(gTaskItem[1].points);
-      //       inputEl.addEventListener('change', function(event) {
-      //           that[privateAddTotalPoints](parseInt(gTaskItem[1].points* (-1)));
-      //           gTaskItem[1].points = inputEl.value;
-      //           that[privateAddTotalPoints](parseInt(gTaskItem[1].points));
-      //         });
-      //       liEl.appendChild(getElementTd(inputEl));
-      //     });
-      // });
-
     return liEl;
   }
 }

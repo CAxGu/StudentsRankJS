@@ -16,7 +16,6 @@ class Context {
   constructor() {
     this.students = new Map();
     this.gradedTasks = [];
-   // this.gradedTasks = new Map();
     this.showNumGradedTasks = 1;
 
 
@@ -36,19 +35,6 @@ class Context {
    if (localStorage.getItem('gradedTasks')) {
     this.gradedTasks = JSON.parse(localStorage.getItem('gradedTasks'));
   }  
-  // if (localStorage.getItem('gradedTasks')) {
-  //   let gtasks_ = new Map(JSON.parse(localStorage.getItem('gradedTasks')));
-  //   let arraytasks = [...gtasks_];
-
-  //   for (let i = 0;i < arraytasks.length;i++) {
-  //     let task=arraytasks[i];
-  //     let t = new GradedTask(task[1].name,task[1].description,
-  //       task[1].weight);
-
-  //      this.gradedTasks.set(task[0],t);
-    
-  //   }
-  // }
 
   }
 
@@ -60,10 +46,15 @@ class Context {
   }
 
   /** Function to get a gradedTask by ID */
-  getGtaskbyID(hash){
-    
-    let hashid = eval(hash);
-    return this.gradedTasks.get(hashid);
+  getGtaskbyID(name){
+   // debugger;
+    let t={};
+    this.gradedTasks.forEach(function(task){
+      if (task.name == name){
+        t = task;
+      }
+    });
+    return t;
   }
 
 
@@ -85,7 +76,7 @@ class Context {
     let arraytasks = [...this.gradedTasks];
     arraytasks.reverse().forEach(function(taskItem) {
       //GRADED_TASKS += '<td>' + '<a href=#listTask/'+hashcode(taskItem[1].name + taskItem[1].description + taskItem[1].weight)+'>'+ taskItem[1].name  + '</a>' + '</td>';
-      GRADED_TASKS += '<td>' + '<a href=#listTask/'+hashcode(taskItem.name + taskItem.description + taskItem.weight)+'>'+ taskItem.name  + '</a>' + '</td>';      
+      GRADED_TASKS += '<td>' + '<a href=#listTask/'+taskItem.name+'>'+ taskItem.name  + '</a>' + '</td>';      
     });
 
     loadTemplate('templates/rankingList.html',function(responseText) {
@@ -96,6 +87,7 @@ class Context {
               tableBody.appendChild(liEl);
             });
           }.bind(this));
+         
     }
   }
 
@@ -119,31 +111,6 @@ class Context {
               this.getTemplateRanking();
         });
 
-
-        // let saveGradedTask = document.getElementById('newGradedTask');
-        
-        // saveGradedTask.addEventListener('submit', () => {
-        //   let name = document.getElementById('idTaskName').value;
-        //   let description = document.getElementById('idTaskDescription').value;
-        //   let weight = document.getElementById('idTaskWeight').value;
-        //   let gtask = new GradedTask(name,description,weight);
-        //   let hash=hashcode(name + description + weight);
-        //   this.gradedTasks.set(hash,gtask);
-        //   localStorage.setItem('gradedTasks',JSON.stringify(Array.from(this.gradedTasks)));
-        //   let arraystud = [...this.students];
-        //   console.log(arraystud);
-        //   arraystud.forEach(function(studentItem) {
-        //     debugger;   
-        //     console.log(studentItem[1]);
-
-        //     studentItem[1].addGradedTask(gtask);
-        //    });
-        //   localStorage.setItem('students',JSON.stringify(arraystud));
-        //   this.students= new Map(arraystud);
-
-        //   this.getTemplateRanking();   
-        // });
-        
   }
   /** Add a new person to the context app */
   addPerson() {
@@ -154,14 +121,6 @@ class Context {
         let name = document.getElementById('idFirstName').value;
         let surnames = document.getElementById('idSurnames').value;
         let student = new Person(name,surnames,[],[]);
-        
-/*         let arraytasks = [...this.gradedTasks];
-        arraytasks.forEach(function(iGradedTask) {
-          // debugger;
-          student.addGradedTask(new GradedTask(iGradedTask[1].name));
-         });
-        localStorage.setItem('gradedTasks',JSON.stringify(arraytasks));
-        this.gradedTasks= new Map(arraytasks); */ 
         this.gradedTasks.forEach(function(iGradedTask) {
               student.addGradedTask(new GradedTask(iGradedTask.name));
             });              
@@ -202,6 +161,59 @@ class Context {
       }
 
 
+  /** Edit an existing task of the context app */
+  editTask(oldtask) {
+    
+            let index = this.gradedTasks.findIndex(x => x.name==oldtask);
+            let oldt = this.gradedTasks[index];
+            let saveTask = document.getElementById('editedTask');
+      
+            saveTask.addEventListener('submit', () => {
+
+              let name = document.getElementById('nameTask').value;
+              let description = document.getElementById('descTask').value;
+              let weight = document.getElementById('weightTask').value;
+
+              oldt.name=name;
+              oldt.description=description;
+              oldt.weight=weight;
+
+              let provStudentsArray = Array.from(this.students);
+              provStudentsArray.forEach(function(student){
+                student[1].gradedTasks.forEach(function(task){
+                  task.task.name = name;
+                  task.task.description = description;
+                  task.task.weight = weight;
+                 
+                })
+              })
+
+              this.students= new Map(provStudentsArray);
+              localStorage.setItem('gradedTasks',JSON.stringify(this.gradedTasks));
+              this.getTemplateRanking();
+            });            
+        }
+
+  deleteTask(idtask){ 
+    
+    let index = this.gradedTasks.findIndex(x => x.name==idtask);
+    this.gradedTasks.splice(index,1);
+
+    let provStudentsArray = Array.from(this.students);
+    provStudentsArray.forEach(function(student){
+      student[1].gradedTasks.forEach(function(task){
+
+       let a=student[1].gradedTasks.findIndex(x => x.task.name==idtask);
+       let points = student[1].getTotalPoints()-parseInt(task.points);
+       student[1].resetTotalPoints(points)
+       student[1].gradedTasks.splice(a,1);
+      })
+    })
+
+   this.students=new Map(provStudentsArray);
+   localStorage.setItem('gradedTasks',JSON.stringify(this.gradedTasks));
+   this.getTemplateRanking();
+  }
 
   /** Add last action performed to lower information layer in main app */
 
