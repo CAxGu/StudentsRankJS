@@ -1,3 +1,7 @@
+'use strict';
+
+let CACHE_TEMPLATES = new Map();
+
 /** Hash code funtion usefull for getting an unique id based on a large text */
 function hashcode(str) {
   let hash = 0, i, chr;
@@ -11,30 +15,19 @@ function hashcode(str) {
   }
   return hash;
 }
-/* 
-function check(){
 
-  if(document.getElementTa("weekly").style.display == "none"){
-   document.getElementById("weekly").style.display = "block";
-   } else{
-    document.getElementById("weekly").style.display = "none";
-  }
-} */
-
-
-
-
-
-/** Pass a text or an element ang get a td table element wrapping it. */ 
-function getElementTd(text) {
+/** Pass a text or an element ang get a td table element wrapping it. */
+/*function getElementTd(text) {
   let tdEl = document.createElement('td');
   let t = text;
   if (typeof text === 'string' || typeof text === 'number') {
-    t = document.createTextNode(text); // Create a text node
+    //t = document.createTextNode(text); // Create a text node
+    tdEl.innerHTML = text;
+  }else {
+    tdEl.appendChild(t);
   }
-  tdEl.appendChild(t);
   return tdEl;
-}
+}*/
 
 function deleteContent() {
   let contentEl = document.getElementById('content');
@@ -45,16 +38,22 @@ function deleteContent() {
 }
 
 function loadTemplate(urlTemplate,callback) {
-  let xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState === 4 && this.status === 200) {
-      document.getElementById('content').innerHTML =
-      this.responseText;
-      callback(this.responseText);
-    }
-  };
-  xhttp.open('GET', urlTemplate, true);
-  xhttp.send();
+  if (CACHE_TEMPLATES.has(urlTemplate)) {
+    //alert('popi ' + urlTemplate);
+    return callback(CACHE_TEMPLATES.get(urlTemplate));
+  }else {
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        /*document.getElementById('content').innerHTML =
+        this.responseText;*/
+        CACHE_TEMPLATES.set(urlTemplate,this.responseText);
+        callback(this.responseText);
+      }
+    };
+    xhttp.open('GET', urlTemplate, true);
+    xhttp.send();
+  }
 }
 
 function popupwindow(url, title, w, h) {
@@ -83,4 +82,4 @@ function formatDate(date) {
   return day + ' ' + monthNames[monthIndex] + ' ' + year + ' ' + hour + ':' + minute;
 }
 
-export {formatDate,popupwindow,hashcode,getElementTd,deleteContent,loadTemplate};
+export {formatDate,popupwindow,hashcode,deleteContent,loadTemplate};
