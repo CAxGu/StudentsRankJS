@@ -13,6 +13,7 @@ import {formatDate,popupwindow,hashcode,loadTemplate} from './utils.js';
 import {context} from './context.js';
 import AttitudeTask from './attitudetask.js';
 import GradedTask from './gradedtask.js';
+import {saveStudents} from './dataservice.js';
 
 const privateAddTotalPoints = Symbol('privateAddTotalPoints'); /** To accomplish private method */
 const _totalPoints = Symbol('TOTAL_POINTS'); /** To acomplish private property */
@@ -65,31 +66,26 @@ class Person {
   getHTMLView(targetElement) {
     loadTemplate('templates/lineStudent.html',function(responseText) {
       let TPL_PERSON = this;
-      //let dom_virtual = document.createElement('html');
-      //dom_virtual.innerHTML = responseText;
       let TPL_REPEATED_GRADED_TASKS = '';
       let gradedTasks = GradedTask.getStudentMarks(this.getId()).reverse();
+      let EVAL_TOTAL= Person.setEvalPoints(GradedTask.getPercent(this));
+
 
       if (context.showNumGradedTasks <= gradedTasks.length) {
         for (let i = 0;i < context.showNumGradedTasks;i++) {
           TPL_REPEATED_GRADED_TASKS += '<td><input type="number" class="gradedTaskInput" idPerson="' + TPL_PERSON.getId() + '" idGradedTask="' + gradedTasks[i][0] + '" min=0 max=100 value="' + gradedTasks[i][1] + '"/></td>';
         }
       }
-
-      let EVAL_TOTAL= Person.setEvalPoints(GradedTask.getPercent(this));
-    
- 
       targetElement.innerHTML += eval('`' + responseText + '`');
     }.bind(this));
   }
-
 
   static setEvalPoints (points){
     let EVAL_TOTAL=+points;
     return EVAL_TOTAL
   }
 
-
+  
   /** Renders person edit form */
   getHTMLEdit() {
     let callback = function(responseText) {
@@ -103,7 +99,7 @@ class Person {
         this.surname = document.getElementById('idSurnames').value;
         let student = new Person(this.name,this.surname,this.attitudeTasks,this.id);
         context.students.set(student.getId(),student);
-        localStorage.setItem('students',JSON.stringify([...context.students])); //Use of spread operator to convert a Map to an array of pairs
+        saveStudents(JSON.stringify([...context.students]));
       });
     }.bind(this);
 

@@ -1,12 +1,13 @@
 'use strict';
 
 import {context} from './context.js'; //Singleton
-import {popupwindow} from './utils.js';
+import {popupwindow,getIdFromURL} from './utils.js';
+import {logout} from './menu.js';
 import AttitudeTask from './attitudetask.js';
 
 /** Once the page is loaded we get a context app object an generate students rank view. */
 window.onload = function() {
-  context.getTemplateRanking();
+  context.isLogged();
 };
 
 /** Primitive routing mechanism we hope in future will be brave enought to  implement a ng-repeat feature at least*/
@@ -17,37 +18,33 @@ window.onclick = function(e) {
     switch (true) {
       /** View Student information detail */
       case /#student/.test(isLink.href):
-        let reg = /([0-9,-]*)$/gi;
-        let matchResults = isLink.href.match(reg);
-        let personInstance = context.getPersonById(matchResults[0]);
+        let personInstance = context.getPersonById(getIdFromURL(isLink.href));
         personInstance.getHTMLDetail();
         break;
       /** Modify student information */
       case /#editStudent/.test(isLink.href):
-        reg = /([0-9,-]*)$/gi;
-        matchResults = isLink.href.match(reg);
-        personInstance = context.getPersonById(matchResults[0]);
+        personInstance = context.getPersonById(getIdFromURL(isLink.href));
         personInstance.getHTMLEdit();
         break;
       /** Delete student with confirmation */
       case /#deleteStudent/.test(isLink.href):
-        reg = /([0-9,-]*)$/gi;
-        matchResults = isLink.href.match(reg);
         if (window.confirm('Are you sure?')) {
-          context.students.delete(parseInt(matchResults[0]));
+          context.students.delete(parseInt(getIdFromURL(isLink.href)));
           context.getTemplateRanking();
         }
         break;
       /** Show popup associated to an student in order to assign XP points  */
       case /#addXP/.test(isLink.href):
-        reg = /([0-9,-]*)$/gi;
-        matchResults = isLink.href.match(reg);
-        personInstance = context.getPersonById(matchResults[0]);
+        personInstance = context.getPersonById(getIdFromURL(isLink.href));
         showXP(personInstance);
         break;
       /** Add new student form */
       case /#addStudent/.test(isLink.href):
         context.addPerson();
+        break;
+      /** logout */
+      case /#logout/.test(isLink.href):
+        logout();
         break;
       /** Button to show a one more graded task on ranking table list */
       case /#MoreGradedTasks/.test(isLink.href):
@@ -59,13 +56,11 @@ window.onclick = function(e) {
         context.addGradedTask();
         break;
       case /#detailGradedTask/.test(isLink.href):
-        reg = /([0-9,-]*)$/gi;
-        matchResults = isLink.href.match(reg);
-        let gtInstance = context.getGradedTaskById(matchResults[0]);
+        let gtInstance = context.getGradedTaskById(getIdFromURL(isLink.href));
         gtInstance.getHTMLEdit();
         break;
       default:
-        context.getTemplateRanking();
+        context.isLogged();
     }
   }
 };
@@ -81,7 +76,7 @@ function findParent(tagname,el) {
   return null;
 }
 
-/** Open window dialog associated to a person instance and let us grant him with some XP points */
+/** Open window dialog associated to a person instance and let us award him with some XP points */
 function showXP(personInstance) {
   let popUpXP = popupwindow('templates/listAttitudeTasks.html','XP points to ' +
                                    personInstance.name,600,600);

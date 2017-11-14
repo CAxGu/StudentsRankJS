@@ -9,7 +9,9 @@
 
 import Person from './person.js';
 import GradedTask from './gradedtask.js';
-import {hashcode,deleteContent,loadTemplate} from './utils.js';
+import {updateFromServer,saveStudents,saveGradedTasks} from './dataservice.js';
+import {hashcode,loadTemplate,setCookie,getCookie} from './utils.js';
+import {generateMenu} from './menu.js';
 
 class Context {
 
@@ -17,23 +19,64 @@ class Context {
     this.students = new Map();
     this.gradedTasks = new Map();
     this.showNumGradedTasks = 1;//Max visible graded tasks in ranking list table
+    if (getCookie('user')) {
+      this.user = JSON.parse(getCookie('user'));
+    }
+  }
 
-    if (localStorage.getItem('students')) {
-      let students_ = new Map(JSON.parse(localStorage.getItem('students')));
-      students_.forEach(function(value_,key_,students_) {
-        students_.set(key_,new Person(value_.name,value_.surname,
-          value_.attitudeTasks,value_.id));
+  /** Check if user is logged */
+  isLogged() {
+    loadTemplate('api/loggedin',function(response) {
+      if (response === '0') {
+        //alert('LOGGED IN 0');
+        this.user = undefined;
+        this.login();
+        return false;
+      }else {
+        //alert('LOGGED IN TRUE');
+        this.user = JSON.parse(response);
+        updateFromServer();
+        this.getTemplateRanking();
+        return true;
+      }
+    }.bind(this),'GET','',false);
+  }
+
+  /** Show login form template when not authenticated */
+  login() {
+    let that = this;
+    if (!this.user) {
+      loadTemplate('templates/login.html',function(responseText) {
+        that.hideMenu();
+        document.getElementById('content').innerHTML = eval('`' + responseText + '`');
+        let loginForm = document.getElementById('loginForm');
+
+        loginForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          let username = document.getElementsByName('username')[0].value;
+          let password = document.getElementsByName('password')[0].value;
+          loadTemplate('api/login',function(userData) {
+            that.user = JSON.parse(userData);
+            setCookie('user',userData,7);
+            updateFromServer();
+            that.getTemplateRanking();
+            //that.showMenu();
+          },'POST','username=' + username + '&password=' + password,false);
+          return false; //Avoid form submit
+        });
       });
-      this.students = students_;
+    }else {
+      generateMenu();
+      that.getTemplateRanking();
     }
-    if (localStorage.getItem('gradedTasks')) {
-      let gradedTasks_ = new Map(JSON.parse(localStorage.getItem('gradedTasks')));
-      gradedTasks_.forEach(function(value_,key_,gradedTasks_) {
-        gradedTasks_.set(key_,new GradedTask(value_.name,value_.description,value_.weight,
-          value_.studentsMark,value_.id));
-      });
-      this.gradedTasks = gradedTasks_;
-    }
+  }
+
+  showMenu() {
+    document.getElementById('navbarNav').style.visibility = 'visible';
+  }
+
+  hideMenu() {
+    document.getElementById('navbarNav').style.visibility = 'hidden';
   }
 
   /** Get a Person instance by its ID */
@@ -46,8 +89,11 @@ class Context {
   }
   /** Draw Students ranking table in descendent order using total points as a criteria */
   getTemplateRanking() {
+    generateMenu();
+    this.showMenu();
 
     if (this.students && this.students.size > 0) {
+      //alert('SI STUDENTS');
       /* We sort students descending from max number of points to min */
       let arrayFromMap = [...this.students.entries()];
       arrayFromMap.sort(function(a,b) {
@@ -55,7 +101,8 @@ class Context {
       });
       this.students = new Map(arrayFromMap);
 
-      localStorage.setItem('students',JSON.stringify([...this.students])); //Use of spread operator to convert a Map to an array of pairs
+      //localStorage.setItem('students',JSON.stringify([...this.students])); //Use of spread operator to convert a Map to an array of pairs
+      saveStudents(JSON.stringify([...this.students]));
       let TPL_GRADED_TASKS = '';
       /* Maximum visible graded tasks could not be greater than actually existing graded tasks */
       if (this.showNumGradedTasks >= this.gradedTasks.length) {
@@ -64,7 +111,6 @@ class Context {
 
       if (this.gradedTasks && this.gradedTasks.size > 0) {
         let arrayGradedTasks = [...this.gradedTasks.entries()].reverse();
-        //TPL_GRADED_TASKS = arrayGradedTasks.slice(this.showNumGradedTasks);
         for (let i = 0;i < this.showNumGradedTasks;i++) {
           if (i === (this.showNumGradedTasks - 1)) {
             TPL_GRADED_TASKS += '<th><a href="#detailGradedTask/' + arrayGradedTasks[i][0] + '">' +
@@ -106,7 +152,7 @@ class Context {
               });
             }.bind(this));
     }else {
-      localStorage.setItem('students',[]);
+      //alert('NO STUDENTS');
       document.getElementById('content').innerHTML ='';
     }
   }
@@ -125,8 +171,7 @@ class Context {
             let saveGradedTask = document.getElementById('newGradedTask');
 
             saveGradedTask.addEventListener('submit', () => {
-              //debugger;
-              let name = document.getElementById('idTaskName').value; 
+              let name = document.getElementById('idTaskName').value;
               let description = document.getElementById('idTaskDescription').value;
               let weight = document.getElementById('idTaskWeight').value;
               let gtask = new GradedTask(name,description,weight,[]);
@@ -135,12 +180,12 @@ class Context {
                 gtask.addStudentMark(studentKey,0);
               });
               this.gradedTasks.set(gtaskId,gtask);
-              localStorage.setItem('gradedTasks',JSON.stringify([...this.gradedTasks])); //Use of spread operator to convert a Map to an array of pairs
+              saveGradedTasks(JSON.stringify([...this.gradedTasks]));
               this.getTemplateRanking();
               return false; //Avoid form submit
             });
           }.bind(this);
-        
+
     loadTemplate('templates/addGradedTask.html',callback);
         }
   }
@@ -151,7 +196,8 @@ class Context {
             document.getElementById('content').innerHTML = responseText;
             let saveStudent = document.getElementById('newStudent');
 
-            saveStudent.addEventListener('submit', () => {
+            saveStudent.addEventListener('submit', (event) => {
+              event.preventDefault();
               let name = document.getElementById('idFirstName').value;
               let surnames = document.getElementById('idSurnames').value;
               let student = new Person(name,surnames,[]);

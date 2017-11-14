@@ -2,6 +2,7 @@
 
 import Task from './task.js';
 import {loadTemplate,hashcode} from './utils.js';
+import {saveGradedTasks} from './dataservice.js';
 import {context} from './context.js';
 
 /**
@@ -30,7 +31,7 @@ class GradedTask extends Task {
   addStudentMark(idStudent,markPoints) {
     this[STUDENT_MARKS].set(parseInt(idStudent),markPoints);
     this.studentsMark = [...this[STUDENT_MARKS].entries()];
-    localStorage.setItem('gradedTasks',JSON.stringify([...context.gradedTasks])); //Use of spread operator to convert a Map to an array of pairs 
+    saveGradedTasks(JSON.stringify([...context.gradedTasks]));
   }
 
   /** Static method to get list marks associated with one student */
@@ -41,70 +42,52 @@ class GradedTask extends Task {
      });
     return marks;
   }
-
+  
   /** Get student mark by their person ID */
   getStudentMark(idStudent) {
     return this[STUDENT_MARKS].get(idStudent);
   }
 
 
+  /** Calculate total graded points associated to one student */
   static getPercent(Student) {
-        let tasks= this.getStudentMarks(parseInt(Student.id));
+    let tasks= this.getStudentMarks(parseInt(Student.id));
 
-        let EVAL_TOTAL=0;
-        let percent_total = 0; //final max mark
-        let final_mark=0;
+    let EVAL_TOTAL=0;
+    let percent_total = 0; //final max mark
+    let final_mark=0;
 
-        tasks.forEach(function(task){
-  
-          let nota= parseInt(task[1]);
-          let gweight=parseInt(context.getGradedTaskById(task[0]).weight);
-          percent_total+=gweight;
-          let result = (nota*gweight)/100;
-          EVAL_TOTAL+=result;
+    tasks.forEach(function(task){
 
-        }); 
+      let nota= parseInt(task[1]);
+      let gweight=parseInt(context.getGradedTaskById(task[0]).weight);
+      percent_total+=gweight;
+      let result = (nota*gweight)/100;
+      EVAL_TOTAL+=result;
 
-        final_mark=(EVAL_TOTAL*10/100);
+    }); 
 
-   return final_mark;
-  }
+    final_mark=(EVAL_TOTAL*10/100);
+
+return final_mark;
+}
 
 
-  static totalPercentMark (){
-  
-  let totalperc=0;
+static totalPercentMark (){
 
-  let id=GradedTask.getStudentMarks();
-    id.forEach(function(task){
-      let weight=parseInt(context.getGradedTaskById(task[0]).weight);
-      totalperc+=weight;
-    });
+let totalperc=0;
 
-    return totalperc;
-  }
+let id=GradedTask.getStudentMarks();
+id.forEach(function(task){
+  let weight=parseInt(context.getGradedTaskById(task[0]).weight);
+  totalperc+=weight;
+});
 
-/* 
-  getHTMLEdit() {
-    let callback = function(responseText) {
-      document.getElementById('content').innerHTML = responseText;
-      let saveGradedTask = document.getElementById('newGradedTask');
-      document.getElementById('idTaskName').value = this.name;
-      document.getElementById('idTaskDescription').value = this.description;
-      document.getElementById('idTaskWeight').value = this.weight;
-      saveGradedTask.addEventListener('submit', () => {
-        let oldId = this.getId();
-        this.name = document.getElementById('idTaskName').value;
-        this.description = document.getElementById('idTaskDescription').value;
-        this.weight = document.getElementById('idTaskWeight').value;
-        let gradedTask = new GradedTask(this.name,this.description,this.weight,this.studentsMark,this.id);
-        context.gradedTasks.set(this.id,gradedTask);
-        localStorage.setItem('gradedTasks',JSON.stringify([...context.gradedTasks])); //Use of spread operator to convert a Map to an array of pairs 
-      });
-    }.bind(this);
+return totalperc;
+}
 
-    loadTemplate('templates/addGradedTask.html',callback);
-  } */
+
+
 
   getHTMLEdit() {
     let callback = function(responseText) {
@@ -114,10 +97,6 @@ class GradedTask extends Task {
       document.getElementById('idTaskDescription').value = this.description;
       document.getElementById('idTaskWeight').value = this.weight;
 
-
-      let STUDENT = '';
-
-
       saveGradedTask.addEventListener('submit', () => {
         let oldId = this.getId();
         this.name = document.getElementById('idTaskName').value;
@@ -125,13 +104,12 @@ class GradedTask extends Task {
         this.weight = document.getElementById('idTaskWeight').value;
         let gradedTask = new GradedTask(this.name,this.description,this.weight,this.studentsMark,this.id);
         context.gradedTasks.set(this.id,gradedTask);
-        localStorage.setItem('gradedTasks',JSON.stringify([...context.gradedTasks])); //Use of spread operator to convert a Map to an array of pairs 
+        saveGradedTasks(JSON.stringify([...context.gradedTasks]));
       });
     }.bind(this);
 
     loadTemplate('templates/addGradedTask.html',callback);
   }
-
 }
 
 export default GradedTask;
