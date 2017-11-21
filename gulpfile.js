@@ -32,10 +32,12 @@ gulp.task('vet', function() {
 
 /**Gulp Task that creates the image of our app and runs it into a docker container */
 
-gulp.task('studentsranking', shell.task([
+gulp.task('docker', shell.task([
   'sudo docker build -t studentsranking .',
   'sudo docker run -d -p 8000:8000 studentsranking'
 ]))
+
+gulp.task('studentsranking', ['browserify', 'docker']);
 
 /**
  * $ gulp
