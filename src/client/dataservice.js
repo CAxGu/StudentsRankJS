@@ -31,6 +31,16 @@ function saveGradedTasks(arrayGT) {
                           console.log('SAVE GRADED TASKS ' + response);
                         },'POST',localStorage.getItem('gradedTasks'),false);
 }
+
+
+function savePicture(file) {
+console.log(file);
+loadTemplate('api/savePicture',function(response) {
+                          console.log('SAVE PICTURE ' + response);
+                        },'POST',file,false); 
+}
+
+
 function loadStudentsToLocalStorage() {
   if (localStorage.getItem('students')) {
     let students_ = new Map(JSON.parse(localStorage.getItem('students')));
@@ -53,4 +63,4 @@ function loadGradedTasksToLocalStorage() {
   }
 }
 
-export {updateFromServer,saveStudents,saveGradedTasks};
+export {updateFromServer,saveStudents,saveGradedTasks,savePicture};

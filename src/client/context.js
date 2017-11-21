@@ -12,6 +12,7 @@ import GradedTask from './gradedtask.js';
 import {updateFromServer,saveStudents,saveGradedTasks} from './dataservice.js';
 import {hashcode,loadTemplate,setCookie,getCookie} from './utils.js';
 import {generateMenu} from './menu.js';
+import {template} from './templator.js';
 
 class Context {
 
@@ -60,7 +61,6 @@ class Context {
             setCookie('user',userData,7);
             updateFromServer();
             that.getTemplateRanking();
-            //that.showMenu();
           },'POST','username=' + username + '&password=' + password,false);
           return false; //Avoid form submit
         });
@@ -96,20 +96,40 @@ class Context {
       //alert('SI STUDENTS');
       /* We sort students descending from max number of points to min */
       let arrayFromMap = [...this.students.entries()];
+      let arrayFinal = [...this.students.entries()];
+
       arrayFromMap.sort(function(a,b) {
         return (b[1].getTotalPoints() - a[1].getTotalPoints());
       });
-      this.students = new Map(arrayFromMap);
 
-      //localStorage.setItem('students',JSON.stringify([...this.students])); //Use of spread operator to convert a Map to an array of pairs
+      let topXPpoints=arrayFromMap[0][1].getTotalPoints(); //Value of the totalpoints of the 1st
+      arrayFromMap.forEach(function(student){
+        
+        let finalxp=context.getfinalXPMark(topXPpoints,student[1].getTotalPoints());
+        student[1].setEvaluatedTotalPoints(finalxp);
+        let finalmark= GradedTask.getStudentGradedTasksPoints(student[0])+student[1].getEvaluatedTotalPoints();
+        student[1].setFinalMark(finalmark)
+
+      });
+
+
+      /* We sort students descending from highest finalmark to lowest */  
+      arrayFinal.sort(function(a,b) {
+        return (b[1].getFinalMark() - a[1].getFinalMark());
+      });
+
+      this.students = new Map(arrayFinal);
+
       saveStudents(JSON.stringify([...this.students]));
       let TPL_GRADED_TASKS = '';
-      /* Maximum visible graded tasks could not be greater than actually existing graded tasks */
-      if (this.showNumGradedTasks >= this.gradedTasks.length) {
-        this.showNumGradedTasks = this.gradedTasks.length;
-      }
+      let PERCENT_GT = '';
+      let PERCENT_XP = '';
+      let FINAL_MARK= '';
 
       if (this.gradedTasks && this.gradedTasks.size > 0) {
+        if (this.showNumGradedTasks >= this.gradedTasks.size) {
+          this.showNumGradedTasks = this.gradedTasks.size;
+        }
         let arrayGradedTasks = [...this.gradedTasks.entries()].reverse();
         for (let i = 0;i < this.showNumGradedTasks;i++) {
           if (i === (this.showNumGradedTasks - 1)) {
@@ -120,36 +140,30 @@ class Context {
           }
         }
       }
+      let scope = {};
+      scope.TPL_GRADED_TASKS = TPL_GRADED_TASKS;
+      scope.TPL_PERSONS = arrayFinal;
+      PERCENT_GT = GradedTask.getGTSettings();
+      PERCENT_XP = GradedTask.getXPSettings();
 
-      let TOTAL_Progresseval = GradedTask.totalPercentMark();
       loadTemplate('templates/rankingList.html',function(responseText) {
-              document.getElementById('content').innerHTML = eval('`' + responseText + '`');
-              let tableBody = document.getElementById('idTableRankingBody');
+              let out = template(responseText,scope);
+              //console.log(out);
+              document.getElementById('content').innerHTML = eval('`' + out + '`');
               let that = this;
               let callback = function() {
                   let gtInputs = document.getElementsByClassName('gradedTaskInput');
                   Array.prototype.forEach.call(gtInputs,function(gtInputItem) {
                         gtInputItem.addEventListener('change', () => {
-                         // debugger;
-                     
-                          let idPerson = gtInputItem.getAttribute('idPerson');
+                          let idPerson = gtInputItem.getAttribute('idStudent');
                           let idGradedTask = gtInputItem.getAttribute('idGradedTask');
                           let gt = that.gradedTasks.get(parseInt(idGradedTask));
-          
                           gt.addStudentMark(idPerson,gtInputItem.value);
                           that.getTemplateRanking();
-
                         });
                       });
                 };
-              let itemsProcessed = 0;
-              this.students.forEach(function(studentItem,key,map) {
-                studentItem.getHTMLView(tableBody);
-                itemsProcessed++;
-                if (itemsProcessed === map.size) {
-                  setTimeout(callback,300); //FAULTY 
-                }
-              });
+              callback();
             }.bind(this));
     }else {
       //alert('NO STUDENTS');
@@ -159,16 +173,14 @@ class Context {
 
   /** Create a form to create a GradedTask that will be added to every student */
   addGradedTask() {
-    let percent=(100-GradedTask.totalPercentMark());
-    console.log(percent);
-    if(percent<=0 | percent>100){
-      alert("You are going over the max marks weight (100%)");
-      context.getTemplateRanking();
-    }else{
-    let MAXPERCENT=percent;
+
     let callback = function(responseText) {
-            document.getElementById('content').innerHTML = eval('`' + responseText + '`');
+            document.getElementById('content').innerHTML = responseText;
             let saveGradedTask = document.getElementById('newGradedTask');
+            let totalGTweight = GradedTask.getGradedTasksTotalWeight();
+            document.getElementById('labelWeight').innerHTML = 'Task Weight (0-' + (100 - totalGTweight) + '%)';
+            let weightIput = document.getElementById('idTaskWeight');
+            weightIput.setAttribute('max', 100 - totalGTweight);
 
             saveGradedTask.addEventListener('submit', () => {
               let name = document.getElementById('idTaskName').value;
@@ -187,7 +199,6 @@ class Context {
           }.bind(this);
 
     loadTemplate('templates/addGradedTask.html',callback);
-        }
   }
   /** Add a new person to the context app */
   addPerson() {
@@ -212,6 +223,72 @@ class Context {
 
     loadTemplate('templates/addStudent.html',callback);
   }
+
+
+
+  taskSettings(){
+    
+        let callback = function(responseText) {
+          document.getElementById('content').innerHTML = responseText;
+    
+          let slider = document.getElementById("slider");
+          let xpoints = document.getElementById("xpoints");
+          let marksweight = document.getElementById("marksweight");
+
+          if(localStorage.getItem('settings')){
+            xpoints.innerHTML = GradedTask.getXPSettings();
+            marksweight.innerHTML = GradedTask.getGTSettings();
+            slider.value = GradedTask.getXPSettings();
+          }else{
+            xpoints.innerHTML = slider.value;
+            marksweight.innerHTML = slider.value;  
+          }
+
+          slider.oninput = function() {
+            xpoints.innerHTML = this.value;
+            marksweight.innerHTML = this.max-this.value;
+
+            //condition to control the 99% - 1% in both sides
+            if (xpoints.innerHTML==this.max){
+              xpoints.innerHTML = this.value-1;
+              marksweight.innerHTML = this.max-this.value+1;
+            }
+          }
+           
+          let saveSettings = document.getElementById('settings');
+          saveSettings.addEventListener('submit', () => {
+
+            let percentXP =xpoints.innerHTML;
+            let percentGT =marksweight.innerHTML;
+    
+            GradedTask.saveSettings(percentXP,percentGT);
+            this.getTemplateRanking();
+          });
+         
+          
+    
+        }.bind(this);
+    
+        loadTemplate('templates/settings.html',callback);
+    
+      }
+
+      /**   Funtion to get the relative weight final mark of xp */
+      getfinalXPMark(maxpoints,points){ 
+        
+    let nota= (points*10)/maxpoints;
+    let finaltop=(nota*GradedTask.getXPSettings())/100;
+    let finalxpmark=0;
+
+    if(maxpoints==points){
+      finalxpmark=finaltop;
+    }else{
+      finalxpmark=(points*finaltop)/maxpoints;
+    }
+
+    return Math.round(finalxpmark*100)/100 
+    }
+
   /** Add last action performed to lower information layer in main app */
   notify(text) {
     document.getElementById('notify').innerHTML = text;

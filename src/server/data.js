@@ -9,7 +9,8 @@ var fs = require('fs');
 
 module.exports = {
   saveGradedTasks: saveGradedTasks,
-  saveStudents: saveStudents
+  saveStudents: saveStudents,
+  savePicture: savePicture
 };
 
 function saveStudents(studentsJSON) {
@@ -54,3 +55,13 @@ function saveGradedTasks(gradedTasksJSON) {
       return data;
     }});
 }*/
+
+function savePicture(picture) {
+  console.log("hola1");
+/*   fs.writeFile('src/server/pics/'+picture, 'base64', (err) => {
+    if (err) {
+      throw err;
+    }
+    console.log('The file has been saved!');
+  }); */
+}

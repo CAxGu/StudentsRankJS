@@ -38,6 +38,33 @@ router.post('/saveGradedTasks',function(req, res) {
     }
 });
 
+
+router.post('/savePicture',function(req, res) {
+
+   if (req.isAuthenticated()){
+/*     res.end(Array[0].toString()); */
+/*     
+   var pepe=new Buffer(JSON.stringify(req.body));
+   var pepenombre=JSON.parse(pepe)[0];
+   var pepeobj=JSON.stringify(pepe)[1]; */
+
+ /*   var juan = Buffer.from(pepe, 'base64').toString()
+console.log(new Buffer(req, 'base64').toString('hex'));
+ */
+var pepe=new Buffer(JSON.stringify(req.body));
+var foto = req.body.toString('utf8')
+
+   fs.writeFile('src/server/pics/'+ req, foto,'utf8', (err) => {
+      if (err) {
+        throw err;
+      }
+      console.log('The file has been saved!');
+    });
+      res.send('OK');
+  }
+});
+
+
 // route to test if the user is logged in or not
 router.get('/loggedin', function(req, res) {
   console.log('Logged in EXPRESS' + JSON.stringify(req.user));

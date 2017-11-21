@@ -13,10 +13,13 @@ import {formatDate,popupwindow,hashcode,loadTemplate} from './utils.js';
 import {context} from './context.js';
 import AttitudeTask from './attitudetask.js';
 import GradedTask from './gradedtask.js';
-import {saveStudents} from './dataservice.js';
+import {saveStudents,savePicture} from './dataservice.js';
+import {template} from './templator.js';
 
 const privateAddTotalPoints = Symbol('privateAddTotalPoints'); /** To accomplish private method */
 const _totalPoints = Symbol('TOTAL_POINTS'); /** To acomplish private property */
+const _evaluatedtotalPoints = Symbol('EVALUATED_TOTAL_POINTS'); /** To acomplish private property */
+const _finalmark = Symbol('FINAL_MARK'); /** To acomplish private property */
 
 class Person {
   constructor(name,surname,attitudeTasks,id=null) {
@@ -33,6 +36,9 @@ class Person {
     this.attitudeTasks.forEach(function (itemAT) {
       this[_totalPoints] += parseInt(itemAT['task'].points);
     }.bind(this));
+
+    this[_evaluatedtotalPoints]=0;
+    this[_finalmark]=0;
   }
 
   /** Add points to person. we should use it carefully . */
@@ -53,39 +59,43 @@ class Person {
     return this[_totalPoints];
   }
 
+
+ /** Read person _totalPoints. A private property only modicable inside person instance */
+  getEvaluatedTotalPoints() {
+  return this[_evaluatedtotalPoints];
+  }
+
+  /** Set value to person _evaluatedtotalPoints. A private property only modicable inside person instance */
+  setEvaluatedTotalPoints(points) {
+    this[_evaluatedtotalPoints]=parseFloat(points);
+  }
+
+  /** Read person _finalmark. A private property only modicable inside person instance */
+  getFinalMark() {
+    return this[_finalmark];
+  }
+  
+  /** Set value to person _finalmark. A private property only modicable inside person instance */
+  setFinalMark(mark) {
+    this[_finalmark]=Math.round((parseFloat(mark))*100)/100;
+  }
+  
   /** Add a Attitude task linked to person with its own mark. */
   addAttitudeTask(taskInstance) {
     this.attitudeTasks.push({'task':taskInstance});
     this[privateAddTotalPoints](parseInt(taskInstance.points));
     context.notify('Added ' + taskInstance.description + ' to ' + this.name + ',' + this.surname);
   }
-
-  /** Renders HTML person table row (tr) with
-   *  complete name, attitudePoints , add button and one input for 
-   * every gradded task binded for that person. */
-  getHTMLView(targetElement) {
-    loadTemplate('templates/lineStudent.html',function(responseText) {
-      let TPL_PERSON = this;
-      let TPL_REPEATED_GRADED_TASKS = '';
-      let gradedTasks = GradedTask.getStudentMarks(this.getId()).reverse();
-      let EVAL_TOTAL= Person.setEvalPoints(GradedTask.getPercent(this));
-
-
-      if (context.showNumGradedTasks <= gradedTasks.length) {
-        for (let i = 0;i < context.showNumGradedTasks;i++) {
-          TPL_REPEATED_GRADED_TASKS += '<td><input type="number" class="gradedTaskInput" idPerson="' + TPL_PERSON.getId() + '" idGradedTask="' + gradedTasks[i][0] + '" min=0 max=100 value="' + gradedTasks[i][1] + '"/></td>';
-        }
-      }
-      targetElement.innerHTML += eval('`' + responseText + '`');
-    }.bind(this));
+  /** Get students Marks sliced by showNumGradedTasks from context*/
+  getStudentMarks() {
+    let gtArray = GradedTask.getStudentMarks(this.getId()).reverse();
+    return gtArray.slice(0,context.showNumGradedTasks);
   }
 
-  static setEvalPoints (points){
-    let EVAL_TOTAL=+points;
-    return EVAL_TOTAL
+  getGTtotalPoints() {
+    return GradedTask.getStudentGradedTasksPoints(this.getId());
   }
 
-  
   /** Renders person edit form */
   getHTMLEdit() {
     let callback = function(responseText) {
@@ -108,19 +118,50 @@ class Person {
   /** Renders person detail view */
   getHTMLDetail() {
     loadTemplate('templates/detailStudent.html',function(responseText) {
+
         document.getElementById('content').innerHTML = responseText;
         let TPL_STUDENT = this;
-        let TPL_ATTITUDE_TASKS = '';
+        let scope = {};
+        scope.TPL_ATTITUDE_TASKS = this.attitudeTasks.reverse();
+
+       
+        /*scope.TPL_GRADED_TASKS = [...context.gradedTasks.entries()];
         this.attitudeTasks.reverse().forEach(function(atItem) {
           TPL_ATTITUDE_TASKS += '<li class="list-group-item">' + atItem.task.points + '->' +
                         atItem.task.description + '->' + formatDate(new Date(atItem.task.datetime)) + '</li>';
         });
+        */
         let TPL_GRADED_TASKS = '';
         context.gradedTasks.forEach(function(gtItem) {
           TPL_GRADED_TASKS += '<li class="list-group-item">' + gtItem.getStudentMark(TPL_STUDENT.getId()) + '->' +
                         gtItem.name + '->' + formatDate(new Date(gtItem.datetime)) + '</li>';
         });
-        document.getElementById('content').innerHTML = eval('`' + responseText + '`');
+        let out = template(responseText,scope);
+        //console.log(out);
+        document.getElementById('content').innerHTML = eval('`' + out + '`');
+
+
+        let profilepic = document.getElementById('profilepic');
+        let savepic = document.getElementById('addprofilepic');
+        savepic.addEventListener('submit',() =>{
+               
+        let name=(this.id).toString()+'.jpg';
+/*      
+        let reader = new FileReader();
+        reader.readAsDataURL(profilepic.files[0]);
+        reader.onload = function(){
+          savePicture(new Buffer (reader.result)); 
+        } */
+
+        let array=[];
+        let pic = window.btoa(profilepic.files[0]);
+        array.push(name);
+        array.push(pic);
+     
+         savePicture(profilepic.files[0]);
+      
+
+        });
       }.bind(this));
   }
 }

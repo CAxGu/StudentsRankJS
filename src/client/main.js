@@ -59,6 +59,9 @@ window.onclick = function(e) {
         let gtInstance = context.getGradedTaskById(getIdFromURL(isLink.href));
         gtInstance.getHTMLEdit();
         break;
+      case /#settings/.test(isLink.href):
+        context.taskSettings();
+        break;
       default:
         context.isLogged();
     }

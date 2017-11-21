@@ -5,6 +5,9 @@ var gulp = require('gulp');
 var nodemon = require('gulp-nodemon');
 var $ = require('gulp-load-plugins')({ lazy: true });
 var jsdoc = require('gulp-jsdoc3');
+
+/* var exec = require('child_process').exec; */
+const shell = require('gulp-shell')
 //var jshint = require('gulp-jshint');
 
 if (!fs.existsSync('dist')){
@@ -26,6 +29,13 @@ gulp.task('vet', function() {
     .pipe($.jscs())
     .pipe($.jscs.reporter());
 });
+
+/**Gulp Task that creates the image of our app and runs it into a docker container */
+
+gulp.task('studentsranking', shell.task([
+  'sudo docker build -t studentsranking .',
+  'sudo docker run -d -p 8000:8000 studentsranking'
+]))
 
 /**
  * $ gulp

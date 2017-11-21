@@ -42,52 +42,31 @@ class GradedTask extends Task {
      });
     return marks;
   }
-  
+  /** Calculate total graded points associated to one student */
+  static getStudentGradedTasksPoints(idStudent) {
+    let points = 0;
+    context.gradedTasks.forEach(function(itemTask) {
+        points += itemTask[STUDENT_MARKS].get(idStudent) * (itemTask.weight / 100);
+      });
+
+    let nota=parseInt(this.getGTSettings()/10);
+    let totalpoints=Math.round((points * parseInt(this.getGTSettings())) / 100);
+
+  return Math.round(((nota * totalpoints) / this.getGTSettings())*100)/100; 
+  }
+  /** Calculate total aggregated GT weight */
+  static getGradedTasksTotalWeight() {
+    let points = 0;
+    context.gradedTasks.forEach(function(itemTask) {
+        points += parseInt(itemTask.weight);
+      });
+    return points;
+  }
+
   /** Get student mark by their person ID */
   getStudentMark(idStudent) {
     return this[STUDENT_MARKS].get(idStudent);
   }
-
-
-  /** Calculate total graded points associated to one student */
-  static getPercent(Student) {
-    let tasks= this.getStudentMarks(parseInt(Student.id));
-
-    let EVAL_TOTAL=0;
-    let percent_total = 0; //final max mark
-    let final_mark=0;
-
-    tasks.forEach(function(task){
-
-      let nota= parseInt(task[1]);
-      let gweight=parseInt(context.getGradedTaskById(task[0]).weight);
-      percent_total+=gweight;
-      let result = (nota*gweight)/100;
-      EVAL_TOTAL+=result;
-
-    }); 
-
-    final_mark=(EVAL_TOTAL*10/100);
-
-return final_mark;
-}
-
-
-static totalPercentMark (){
-
-let totalperc=0;
-
-let id=GradedTask.getStudentMarks();
-id.forEach(function(task){
-  let weight=parseInt(context.getGradedTaskById(task[0]).weight);
-  totalperc+=weight;
-});
-
-return totalperc;
-}
-
-
-
 
   getHTMLEdit() {
     let callback = function(responseText) {
@@ -95,7 +74,11 @@ return totalperc;
       let saveGradedTask = document.getElementById('newGradedTask');
       document.getElementById('idTaskName').value = this.name;
       document.getElementById('idTaskDescription').value = this.description;
-      document.getElementById('idTaskWeight').value = this.weight;
+      let totalGTweight = GradedTask.getGradedTasksTotalWeight();
+      let weightIput = document.getElementById('idTaskWeight');
+      document.getElementById('labelWeight').innerHTML = 'Weight (0-' + (100 - (totalGTweight - this.weight)) + '%)';
+      weightIput.value = this.weight;
+      weightIput.setAttribute('max', 100 - (totalGTweight - this.weight));
 
       saveGradedTask.addEventListener('submit', () => {
         let oldId = this.getId();
@@ -109,6 +92,37 @@ return totalperc;
     }.bind(this);
 
     loadTemplate('templates/addGradedTask.html',callback);
+  }
+
+/** Function to store the weight values chosen using the settings slider */
+  static saveSettings(percentXP,percentGT){
+
+    let PERCENT_GT=parseInt(percentGT);
+    let PERCENT_XP=parseInt(percentXP);
+
+    let settings ={'xppercent':PERCENT_XP,'gtpercent':PERCENT_GT};
+    localStorage.setItem('settings',JSON.stringify(settings));
+  }
+
+  /**Get XP Percent weight stored in local storage */
+  static getXPSettings(){
+    let PERCENT_XP=50;
+    if(JSON.parse(localStorage.getItem('settings'))){
+      PERCENT_XP=(JSON.parse(localStorage.getItem('settings'))).xppercent;
+    }
+
+    return PERCENT_XP
+  }
+
+  /**Get GT Percent weight stored in local storage */
+  static getGTSettings(){
+
+    let PERCENT_GT=50;
+    if(JSON.parse(localStorage.getItem('settings'))){
+      PERCENT_GT=(JSON.parse(localStorage.getItem('settings'))).gtpercent;
+    }
+
+    return PERCENT_GT
   }
 }
 
